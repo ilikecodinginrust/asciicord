@@ -3,16 +3,7 @@
 Turn images and drawings into Discord-ready ASCII art — auto-capped to the 2,000-character limit.
 
 ## Use it
-
 [Live site](https://ilikecodinginrust.github.io/asciicord/)
-
-No build step, no dependencies, no server — open the page and use it.
-
-### Enable GitHub Pages
-
-1. Push these files to a repo named `asciicord`.
-2. Repo → **Settings → Pages** → **Deploy from a branch** → branch `main`, folder `/ (root)` → **Save**.
-3. Open `https://<your-username>.github.io/asciicord/`.
 
 ## Features
 
