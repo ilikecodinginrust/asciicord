@@ -4,7 +4,7 @@ Turn images and drawings into Discord-ready ASCII art — auto-capped to the 2,0
 
 ## Use it
 
-Live site: `https://<your-username>.github.io/asciicord/`
+[Live site](https://ilikecodinginrust.github.io/asciicord/)
 
 No build step, no dependencies, no server — open the page and use it.
 
