@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>asciicord — Discord-ready ASCII art</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">▓▒░</span>
+    <div>
+      <h1>asciicord</h1>
+      <p>Images and drawings → Discord-ready ASCII art.</p>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Mode">
+  <button class="tab active" id="tabImage" type="button">Image to ASCII</button>
+  <button class="tab" id="tabDraw" type="button">Draw in Color</button>
+</nav>
+
+<main class="layout" id="imageView">
+  <section class="panel controls" aria-label="Image controls">
+    <div class="group">
+      <div class="group-head"><h2>Source</h2></div>
+      <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Upload image">
+        <input type="file" id="fileInput" accept="image/*" hidden />
+        <svg class="dz-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.5-3.5a2 2 0 0 0-3 0L6 20"/></svg>
+        <div><strong>Drop an image, click to browse, or paste with Ctrl+V</strong></div>
+        <div class="dz-sub">PNG · JPG · WebP · GIF</div>
+        <div class="dz-actions">
+          <button class="btn" id="browseBtn" type="button">Browse</button>
+          <button class="btn ghost" id="sampleBtn" type="button">Sample</button>
+        </div>
+      </div>
+      <div class="thumb-row hidden" id="thumbRow">
+        <img id="thumb" alt="Source image" />
+        <div class="thumb-meta">
+          <div id="imgInfo">—</div>
+          <button class="btn ghost small" id="clearBtn" type="button" aria-label="Remove image">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-head">
+        <h2>Size</h2>
+        <button class="link-btn" id="maxFitBtn" type="button" title="Set width to the largest value that still fits in 2000 chars">Max fit</button>
+      </div>
+      <div class="value-row">
+        <label for="widthSlider">Width</label>
+        <span class="value"><strong id="widthVal">80</strong> <span class="dim" id="heightVal"></span></span>
+      </div>
+      <input type="range" id="widthSlider" min="10" max="160" value="80" step="1" />
+      <div class="meter"><div id="meterFill"></div></div>
+      <div class="count-row"><span id="charCount">0 / 2000</span><span id="fitMsg" class="dim"></span></div>
+      <div class="value-row sub">
+        <label for="aspectSlider" title="Compensates for character shape">Vertical squash</label>
+        <span class="value dim" id="aspectVal">0.55</span>
+      </div>
+      <input type="range" id="aspectSlider" min="0.35" max="1" value="0.55" step="0.01" />
+    </div>
+
+    <div class="group">
+      <div class="group-head"><h2>Style</h2></div>
+      <div class="grid2">
+        <label>Charset
+          <select id="charsetSel">
+            <option value="detailed" selected>Detailed (closest)</option>
+            <option value="standard">Standard</option>
+            <option value="blocks">Blocks (bold)</option>
+            <option value="minimal">Minimal (clean)</option>
+          </select>
+        </label>
+        <label>Color
+          <select id="colorSel">
+            <option value="mono" selected>Mono (smaller)</option>
+            <option value="ansi">ANSI color</option>
+          </select>
+        </label>
+      </div>
+      <div class="grid2">
+        <label>Brightness · <span id="brightVal">0</span>
+          <input type="range" id="brightSlider" min="-100" max="100" value="0" step="1" />
+        </label>
+        <label>Contrast · <span id="contrastVal">100%</span>
+          <input type="range" id="contrastSlider" min="0" max="200" value="100" step="1" />
+        </label>
+      </div>
+      <div class="checks">
+        <label title="Floyd–Steinberg dithering adds detail"><input type="checkbox" id="ditherChk" checked /> Dithering</label>
+        <label><input type="checkbox" id="invertChk" /> Invert</label>
+        <label>Background
+          <select id="bgSel">
+            <option value="black" selected>Black</option>
+            <option value="white">White</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-head"><h2>Export</h2></div>
+      <div class="btn-row">
+        <button class="btn primary" id="copyDiscordBtn" type="button">Copy for Discord</button>
+        <button class="btn" id="copyRawBtn" type="button">Copy raw</button>
+        <button class="btn ghost" id="downloadBtn" type="button">Download</button>
+      </div>
+      <p class="status" id="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="panel preview-panel" aria-label="Art preview">
+    <div class="preview-head">
+      <h2>Preview</h2>
+      <label class="checkline"><input type="checkbox" id="wrapChk" /> Wrap</label>
+    </div>
+    <pre id="preview" class="preview" aria-live="polite">Paste or drop an image to start.</pre>
+    <canvas id="work" hidden></canvas>
+  </section>
+</main>
+
+<main class="layout hidden" id="drawView">
+  <section class="panel controls" aria-label="Drawing controls">
+    <div class="group">
+      <div class="group-head"><h2>Draw</h2></div>
+      <div class="paint-wrap"><canvas id="paint" width="192" height="96"></canvas></div>
+      <div class="color-row">
+        <div class="swatches" id="swatches" role="group" aria-label="Colors"></div>
+        <input type="color" id="customColor" class="sw custom" title="Custom color" aria-label="Custom color" value="#e5e510" />
+      </div>
+      <div class="value-row sub">
+        <label for="brushSlider">Brush</label>
+        <span class="value dim" id="brushVal">4</span>
+      </div>
+      <input type="range" id="brushSlider" min="1" max="14" value="4" step="1" />
+      <div class="toolbar" role="toolbar" aria-label="Drawing tools">
+        <div class="seg" role="group" aria-label="Tool">
+          <button class="seg-btn toggled" id="penBtn" type="button">Pen</button>
+          <button class="seg-btn" id="eraserBtn" type="button">Eraser</button>
+        </div>
+        <button class="icon-btn" id="undoBtn" type="button" title="Undo (Ctrl+Z)" aria-label="Undo">↩</button>
+        <button class="icon-btn" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↪</button>
+        <span class="spacer"></span>
+        <button class="btn ghost small" id="drawImageBtn" type="button">Add picture</button>
+        <input type="file" id="drawFile" accept="image/*" hidden />
+        <button class="btn ghost small" id="paintClearBtn" type="button">Clear</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-head"><h2>Size</h2></div>
+      <div class="value-row">
+        <label for="drawWidthSlider">Width</label>
+        <span class="value"><strong id="drawWidthVal">48</strong> <span class="dim" id="drawHeightVal"></span></span>
+      </div>
+      <input type="range" id="drawWidthSlider" min="10" max="90" value="48" step="1" />
+      <div class="meter"><div id="drawMeterFill"></div></div>
+      <div class="count-row"><span id="drawCount">0 / 2000</span><span id="drawFit" class="dim"></span></div>
+    </div>
+
+    <div class="group">
+      <div class="group-head"><h2>Export</h2></div>
+      <label class="mobsafe"><input type="checkbox" id="mobileSafeChk" /> Mobile-safe <span class="dim">same result on phones</span></label>
+      <div class="btn-row">
+        <button class="btn primary" id="drawCopyBtn" type="button">Copy for Discord</button>
+        <button class="btn ghost" id="drawDownloadBtn" type="button">Download</button>
+      </div>
+      <p class="tip">Tip: you can draw directly on the preview.</p>
+      <p class="status" id="drawStatus" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="panel preview-panel" aria-label="Drawing preview">
+    <div class="preview-head">
+      <h2>Preview</h2>
+      <button class="btn ghost small" id="mobileViewBtn" type="button" title="Constrain the preview to phone width">Mobile view</button>
+    </div>
+    <pre id="drawPreview" class="preview" aria-live="polite">Draw something to start.</pre>
+  </section>
+</main>
+
+<div id="brushRing"></div>
+
+<footer>
+  <span>Output is always capped to Discord's 2,000-character limit.</span>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
